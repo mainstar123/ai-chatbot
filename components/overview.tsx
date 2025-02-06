@@ -32,7 +32,7 @@ export const Overview = () => {
           ,{" "}
           <Link
             className="font-medium underline underline-offset-4"
-            href="https://sdk.vercel.ai/docs"
+            href="https://github.com/nextauthjs/next-auth"
             target="_blank"
           >
             NextAuth.js
