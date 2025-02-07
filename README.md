@@ -14,6 +14,9 @@
 </p>
 <br/>
 
+## Previews
+[screen-capture (3).webm](https://github.com/user-attachments/assets/1a78d26b-72bd-4e36-85b3-4eba033cbfcb)
+
 ## Features
 
 - [Next.js](https://nextjs.org) App Router
