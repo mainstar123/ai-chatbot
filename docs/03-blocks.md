@@ -2,7 +2,7 @@
 
 Blocks is a special user interface mode that allows you to have a workspace like interface along with the chat interface. This is similar to [ChatGPT's Canvas](https://openai.com/index/introducing-canvas) and [Claude's Artifacts](https://www.anthropic.com/news/artifacts).
 
-The template already ships with the following blocks:
+The app already ships with the following blocks:
 
 - **Text Block**: A block that allows you to work with text content like drafting essays and emails.
 - **Code Block**: A block that allows you to write and execute code (Python).
@@ -30,18 +30,18 @@ blocks/
 This file is responsible for rendering your custom block. You might replace the inner UI with your own components, but the overall pattern (initialization, handling streamed data, and rendering content) remains the same. For instance:
 
 ```tsx
-import { Block } from "@/components/create-block";
-import { ExampleComponent } from "@/components/example-component";
-import { toast } from "sonner";
+import { Block } from '@/components/create-block';
+import { ExampleComponent } from '@/components/example-component';
+import { toast } from 'sonner';
 
 interface CustomBlockMetadata {
   // Define metadata your custom block might need—the example below is minimal.
   info: string;
 }
 
-export const customBlock = new Block<"custom", CustomBlockMetadata>({
-  kind: "custom",
-  description: "A custom block for demonstrating custom functionality.",
+export const customBlock = new Block<'custom', CustomBlockMetadata>({
+  kind: 'custom',
+  description: 'A custom block for demonstrating custom functionality.',
   // Initialization can fetch any extra data or perform side effects
   initialize: async ({ documentId, setMetadata }) => {
     // For example, initialize the block with default metadata.
@@ -51,17 +51,17 @@ export const customBlock = new Block<"custom", CustomBlockMetadata>({
   },
   // Handle streamed parts from the server (if your block supports streaming updates)
   onStreamPart: ({ streamPart, setMetadata, setBlock }) => {
-    if (streamPart.type === "info-update") {
+    if (streamPart.type === 'info-update') {
       setMetadata((metadata) => ({
         ...metadata,
         info: streamPart.content as string,
       }));
     }
-    if (streamPart.type === "content-update") {
+    if (streamPart.type === 'content-update') {
       setBlock((draftBlock) => ({
         ...draftBlock,
         content: draftBlock.content + (streamPart.content as string),
-        status: "streaming",
+        status: 'streaming',
       }));
     }
   },
@@ -81,7 +81,7 @@ export const customBlock = new Block<"custom", CustomBlockMetadata>({
       return <div>Loading custom block...</div>;
     }
 
-    if (mode === "diff") {
+    if (mode === 'diff') {
       const oldContent = getDocumentContentById(currentVersionIndex - 1);
       const newContent = getDocumentContentById(currentVersionIndex);
       return (
@@ -104,7 +104,7 @@ export const customBlock = new Block<"custom", CustomBlockMetadata>({
         <button
           onClick={() => {
             navigator.clipboard.writeText(content);
-            toast.success("Content copied to clipboard!");
+            toast.success('Content copied to clipboard!');
           }}
         >
           Copy
@@ -116,11 +116,11 @@ export const customBlock = new Block<"custom", CustomBlockMetadata>({
   actions: [
     {
       icon: <span>⟳</span>,
-      description: "Refresh block info",
+      description: 'Refresh block info',
       onClick: ({ appendMessage }) => {
         appendMessage({
-          role: "user",
-          content: "Please refresh the info for my custom block.",
+          role: 'user',
+          content: 'Please refresh the info for my custom block.',
         });
       },
     },
@@ -129,11 +129,11 @@ export const customBlock = new Block<"custom", CustomBlockMetadata>({
   toolbar: [
     {
       icon: <span>✎</span>,
-      description: "Edit custom block",
+      description: 'Edit custom block',
       onClick: ({ appendMessage }) => {
         appendMessage({
-          role: "user",
-          content: "Edit the custom block content.",
+          role: 'user',
+          content: 'Edit the custom block content.',
         });
       },
     },
@@ -146,31 +146,31 @@ Server-Side Example (server.ts)
 The server file processes the document for the block. It streams updates (if applicable) and returns the final content. For example:
 
 ```ts
-import { smoothStream, streamText } from "ai";
-import { myProvider } from "@/lib/ai/models";
-import { createDocumentHandler } from "@/lib/blocks/server";
-import { updateDocumentPrompt } from "@/lib/ai/prompts";
+import { smoothStream, streamText } from 'ai';
+import { myProvider } from '@/lib/ai/models';
+import { createDocumentHandler } from '@/lib/blocks/server';
+import { updateDocumentPrompt } from '@/lib/ai/prompts';
 
-export const customDocumentHandler = createDocumentHandler<"custom">({
-  kind: "custom",
+export const customDocumentHandler = createDocumentHandler<'custom'>({
+  kind: 'custom',
   // Called when the document is first created.
   onCreateDocument: async ({ title, dataStream }) => {
-    let draftContent = "";
+    let draftContent = '';
     // For demonstration, use streamText to generate content.
     const { fullStream } = streamText({
-      model: myProvider.languageModel("block-model"),
+      model: myProvider.languageModel('block-model'),
       system:
-        "Generate a creative piece based on the title. Markdown is supported.",
-      experimental_transform: smoothStream({ chunking: "word" }),
+        'Generate a creative piece based on the title. Markdown is supported.',
+      experimental_transform: smoothStream({ chunking: 'word' }),
       prompt: title,
     });
 
     // Stream the content back to the client.
     for await (const delta of fullStream) {
-      if (delta.type === "text-delta") {
+      if (delta.type === 'text-delta') {
         draftContent += delta.textDelta;
         dataStream.writeData({
-          type: "content-update",
+          type: 'content-update',
           content: delta.textDelta,
         });
       }
@@ -180,16 +180,16 @@ export const customDocumentHandler = createDocumentHandler<"custom">({
   },
   // Called when updating the document based on user modifications.
   onUpdateDocument: async ({ document, description, dataStream }) => {
-    let draftContent = "";
+    let draftContent = '';
     const { fullStream } = streamText({
-      model: myProvider.languageModel("block-model"),
-      system: updateDocumentPrompt(document.content, "custom"),
-      experimental_transform: smoothStream({ chunking: "word" }),
+      model: myProvider.languageModel('block-model'),
+      system: updateDocumentPrompt(document.content, 'custom'),
+      experimental_transform: smoothStream({ chunking: 'word' }),
       prompt: description,
       experimental_providerMetadata: {
         openai: {
           prediction: {
-            type: "content",
+            type: 'content',
             content: document.content,
           },
         },
@@ -197,10 +197,10 @@ export const customDocumentHandler = createDocumentHandler<"custom">({
     });
 
     for await (const delta of fullStream) {
-      if (delta.type === "text-delta") {
+      if (delta.type === 'text-delta') {
         draftContent += delta.textDelta;
         dataStream.writeData({
-          type: "content-update",
+          type: 'content-update',
           content: delta.textDelta,
         });
       }
